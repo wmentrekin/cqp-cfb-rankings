@@ -1,11 +1,11 @@
 
-import cvxpy as cp
-import networkx as nx
-import numpy as np
-import pandas as pd
-from gpt.data import get_fbs_teams_by_year
-from gpt.data import get_games_by_year_week
-from gpt.data import process_game_data
+import cvxpy as cp # type: ignore
+import networkx as nx # type: ignore
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
+from data import get_fbs_teams_by_year
+from data import get_games_by_year_week
+from data import process_game_data
 
 def get_data_by_year_up_to_week(year, week = None):
     games_df = get_games_by_year_week(year)

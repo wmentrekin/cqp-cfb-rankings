@@ -1,5 +1,5 @@
 
-import networkx as nx
+import networkx as nx # type: ignore
 
 def compute_connectivity_index(games, teams):
     '''

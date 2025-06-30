@@ -1,16 +1,19 @@
 import requests
-import pandas as pd
-import cfbd
-
+import pandas as pd # type: ignore
+from dotenv import load_dotenv # type: ignore
+import os
 
 BASE_URL = "https://api.collegefootballdata.com"
-API_KEY = "sz55AwUuro/KMnA8lmg3rzeoEa7LsKLJDZQpDKNpkDqhJF26ErBICm4GJGEyMJku"
+# API_KEY = "sz55AwUuro/KMnA8lmg3rzeoEa7LsKLJDZQpDKNpkDqhJF26ErBICm4GJGEyMJku"
+load_dotenv()
+API_KEY = os.getenv("API_KEY")
 
+## IN PROGRESS ##
 def get_fbs_records_by_team_by_year(year, team):
     api_key = API_KEY
     url = f"{BASE_URL}/teams/records?year={year}&team={team}"
     headers = {"Authorization": f"Bearer {api_key}"}
-
+## IN PROGRESS ##
 
 def get_fbs_teams_by_year(year):
 
