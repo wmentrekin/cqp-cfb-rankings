@@ -2,15 +2,13 @@ import cvxpy as cp # type: ignore
 import networkx as nx # type: ignore
 import numpy as np # type: ignore
 import pandas as pd # type: ignore
-from data import get_fbs_teams_by_year
-from data import get_games_by_year_week
-from data import process_game_data
+
 from data import get_data_by_year_up_to_week
 
 def get_prior_ratings(year):
 
     # Get Data
-    teams, games, fcs_losses, records = get_data_by_year_up_to_week(year)
+    teams, games, fcs_losses, records, connectivity = get_data_by_year_up_to_week(year)
 
     # Datasets
     teams = teams  # List of FBS team names

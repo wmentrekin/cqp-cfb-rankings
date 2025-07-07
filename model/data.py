@@ -1,6 +1,7 @@
 import requests
 import pandas as pd # type: ignore
 from dotenv import load_dotenv # type: ignore
+from connectivity import compute_connectivity_index
 import os
 
 load_dotenv()
@@ -42,12 +43,15 @@ def process_game_data(games_df, fbs_teams_df):
 
     game_counter = {}
 
+    game_pairs = []
+
     records = {}
     for team in teams:
         records[team] = [0, 0, 0]
 
     for _, row in games_df.iterrows():
         team1, team2 = row['homeTeam'], row['awayTeam']
+        game_pairs.append((team1, team2))
         team1_score, team2_score = row['homePoints'], row['awayPoints']
         if pd.isnull(team1_score) or pd.isnull(team2_score):
             continue  # Skip games without scores
@@ -111,12 +115,14 @@ def process_game_data(games_df, fbs_teams_df):
                 row.get("season")
             ))
 
-    return teams, games, fcs_losses, records
+    connectivity = compute_connectivity_index(game_pairs, teams)
+
+    return teams, games, fcs_losses, records, connectivity
 
 def get_data_by_year_up_to_week(year, week = None):
     games_df = get_games_by_year_week(year)
     if week:
         games_df = games_df[games_df["week"] <= week]
     fbs_teams_df = get_fbs_teams_by_year(year)
-    teams, games, fcs_losses, records = process_game_data(games_df, fbs_teams_df)
-    return teams, games, fcs_losses, records
+    teams, games, fcs_losses, records, connectivity = process_game_data(games_df, fbs_teams_df)
+    return teams, games, fcs_losses, records, connectivity

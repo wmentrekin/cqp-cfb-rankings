@@ -3,16 +3,15 @@ import cvxpy as cp # type: ignore
 import networkx as nx # type: ignore
 import numpy as np # type: ignore
 import pandas as pd # type: ignore
-from data import get_fbs_teams_by_year
-from data import get_games_by_year_week
-from data import process_game_data
+
 from data import get_data_by_year_up_to_week
 from prior_model import get_prior_ratings
+from connectivity import lambda_decay
 
-def get_ratings(year, week):
+def get_ratings(year, week = None):
 
     # Get Data
-    teams, games, fcs_losses = get_data_by_year_up_to_week(year)
+    teams, games, fcs_losses, records, connectivity = get_data_by_year_up_to_week(year, week)
     prior_ratings = get_prior_ratings(year - 1)
 
     # Datasets
@@ -27,15 +26,16 @@ def get_ratings(year, week):
             prior_ratings[team] = 35
 
     # Parameters
-    lambda_max = 10 # max prior rating multiplier
+    lambda_max = 10
+    full_trust_week = 7
     _lambda = cp.Parameter(nonneg=True) # calculate term based on lambda_max and connectivity matrix
+    _lambda.value = lambda_decay(week, connectivity, lambda_max, full_trust_week)
     M = 200 # Big M 200 > 138 = Number of FBS teams
     mu = 20 # regularization penalty for on FCS rating
     beta = 2.0 # penalty multipler for FCS loss slack
     R_min = 5 # mininum FCS rating
     R_max = 15 # maximum FCS rating
     gamma = 1 # small regularization constant
-    R_mean = 50 # center point of ratings
 
     # Decision Variables
     r = {team: cp.Variable(name = f"r_{team}") for team in teams} # team rating
@@ -74,6 +74,8 @@ def get_ratings(year, week):
         constraints.append(r[i] + z[(i, j, k)] <= r[j] + M) # slack constraints for losses to lower ranked teams
     for (team, _, _, _, _) in fcs_losses:
         constraints.append(r[team] + z_fcs[team] <= r_fcs + M) # slack constraints for losses to FCS teams
+    for (team) in teams:
+        constraints.append(r[team] >= 0)
     constraints.append(r_fcs >= R_min)
     constraints.append(r_fcs <= R_max)
 
@@ -83,13 +85,22 @@ def get_ratings(year, week):
     if problem.status not in ["infeasible", "unbounded"]:
         # Otherwise, problem.value is inf or -inf, respectively.
         print("Optimal value: %s" % problem.value)
-        ratings = []
+        ratings = {}
+        slack = []
         for variable in problem.variables():
             print("Variable %s: value %s" % (variable.name(), variable.value))
             if variable.name()[0:2] == "r_":
-                ratings.append((variable.name()[2:], variable.value))
-        ratings = sorted(ratings, key = lambda x: x[1], reverse = True)
+                ratings[variable.name()[2:]] = variable.value.astype(float)
+            elif variable.name()[0:2] == "z_":
+                slack.append((variable.name()[2:], variable.value.astype(float)))
+        ratings = dict(sorted(ratings.items(), key = lambda item: item[1], reverse = True))
         count = 1
-        for team in ratings:
-            print(count, team)
+        for team in ratings.keys():
+            if team == "fcs":
+                print(count, team, ratings[team])
+            else:
+                print(count, team, ratings[team], f"{records[team][0]}-{records[team][1]}")
             count += 1
+
+
+get_ratings(2024, 6)
