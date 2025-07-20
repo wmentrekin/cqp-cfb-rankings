@@ -101,6 +101,5 @@ def get_ratings(year, week = None):
             else:
                 print(count, team, ratings[team], f"{records[team][0]}-{records[team][1]}")
             count += 1
-
-
-get_ratings(2024, 6)
+    
+get_ratings(2024, week = 6)

@@ -26,7 +26,7 @@ def compute_connectivity_index(games, teams):
 
     return len(largest_cc) / len(teams)
 
-def lambda_decay(week, connectivity, lambda_max=10, full_week=7):
+def lambda_decay(week, connectivity, lambda_max, full_week):
     if week < 3:
         return lambda_max
     decay_factor = (1 - (week - 3) / (full_week - 3))**2
